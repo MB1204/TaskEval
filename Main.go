@@ -7,6 +7,8 @@ import (
     "html/template"
     "net/http"
     "os"
+
+    "github.com/rs/cors"
 )
 
 type FormData struct {
@@ -24,11 +26,18 @@ type ApiResponse struct {
 }
 
 func main() {
+    // Create a new CORS handler
+    corsHandler := cors.New(cors.Options{
+        AllowedOrigins:   []string{"*"}, // Allow all origins or specify your frontend URL
+        AllowCredentials: true,
+    })
+
     http.HandleFunc("/", formHandler)
     http.HandleFunc("/submit", submitHandler)
 
     fmt.Println("Server started at :8080")
-    http.ListenAndServe(":8080", nil)
+    // Use the CORS handler
+    http.ListenAndServe(":8080", corsHandler.Handler(http.DefaultServeMux))
 }
 
 func formHandler(w http.ResponseWriter, r *http.Request) {
@@ -86,21 +95,33 @@ func formHandler(w http.ResponseWriter, r *http.Request) {
         </body>
         </html>
         `
-        t, _ := template.New("form").Parse(tmpl)
-        t.Execute(w, nil)
+        t, err := template.New("form").Parse(tmpl)
+        if err != nil {
+            http.Error(w, "Failed to parse template ", http.StatusInternalServerError)
+            return
+        }
+        err = t.Execute(w, nil)
+        if err != nil {
+            http.Error(w, "Failed to execute template", http.StatusInternalServerError)
+            return
+        }
     }
 }
 
 func submitHandler(w http.ResponseWriter, r *http.Request) {
     if r.Method == http.MethodPost {
         // Parse the form data
-        r.ParseForm()
+        err := r.ParseForm()
+        if err != nil {
+            http.Error(w, "Failed to parse form", http.StatusBadRequest)
+            return
+        }
         data := FormData{
             Task1:     r.FormValue("task1"),
             Task2:     r.FormValue("task2"),
             Tools1:    r.FormValue("tools1"),
             Tracking1: r.FormValue("tracking1"),
-            Pain1:     r.FormValue ("pain1"),
+            Pain1:     r.FormValue("pain1"),
             Pain2:     r.FormValue("pain2"),
             Goals1:    r.FormValue("goals1"),
         }
@@ -126,8 +147,8 @@ func submitHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getAutomationSuggestions(data FormData) ([]string, error) {
-    apiUrl := "https://task-automation-evaluation.vercel.app/api/suggestions" // Corrected API endpoint
-    apiToken := os.Getenv("API_TOKEN") // Use environment variable for API token
+    apiUrl := "https://taskeval-production.up.railway.app/Main" // Corrected API endpoint
+    apiToken := os.Getenv("REPLICATE_API_TOKEN") // Use environment variable for API token
 
     query := fmt.Sprintf("Give the best automation suggestions based on the answers: %s, %s, %s, %s, %s, %s, %s",
         data.Task1, data.Task2, data.Tools1, data.Tracking1, data.Pain1, data.Pain2, data.Goals1)
@@ -162,4 +183,4 @@ func getAutomationSuggestions(data FormData) ([]string, error) {
     }
 
     return apiResponse.Suggestions, nil
-} 
+}
