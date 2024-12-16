@@ -58,7 +58,7 @@ func formHandler(w http.ResponseWriter, r *http.Request) {
     <div class="form-container">
         <h1>Task Automation Evaluation Form</h1>
         <form id="evaluation-form"
-              hx-trigger="submit" hx-target="#suggestions-container" hx-swap="innerHTML">
+      hx-post="/submit" hx-target="#suggestions-container" hx-swap="innerHTML">
             <fieldset>
                 <legend>Task Identification</legend>
                 <label for="task1">What specific tasks or processes are you currently performing that you believe could be automated? Please list them.</label>
@@ -124,6 +124,7 @@ func submitHandler(w http.ResponseWriter, r *http.Request) {
             http.Error(w, "Failed to parse form", http.StatusBadRequest)
             return
         }
+
         data := FormData{
             Task1:     r.FormValue("task1"),
             Task2:     r.FormValue("task2"),
@@ -141,17 +142,30 @@ func submitHandler(w http.ResponseWriter, r *http.Request) {
             return
         }
 
-        // Display the suggestions
-        fmt.Fprintf(w, "Form submitted successfully!\n")
-        fmt.Fprintf(w, "Task 1: %s\n", data.Task1)
-        fmt.Fprintf(w, "Task 2: %s\n", data.Task2)
-        fmt.Fprintf(w, "Tools: %s\n", data.Tools1)
-        fmt.Fprintf(w, "Tracking Method: %s\n", data.Tracking1)
-        fmt.Fprintf(w, "Pain Points: %s\n", data.Pain1)
-        fmt.Fprintf(w, "Repetitive Tasks: %s\n", data.Pain2)
-        fmt.Fprintf(w, "Goals: %s\n", data.Goals1)
-        fmt.Fprintf(w, "Automation Suggestions: %v\n", suggestions)
+        // Create an HTML response to be injected into the suggestions container
+        responseHTML := "<h2>Form submitted successfully!</h2>"
+        responseHTML += "<p><strong>Task 1:</strong> " + data.Task1 + "</p>"
+        responseHTML += "<p><strong>Task 2:</strong> " + data.Task2 + "</p>"
+        responseHTML += "<p><strong>Tools:</strong> " + data.Tools1 + "</p>"
+        responseHTML += "<p><strong>Tracking Method:</strong> " + data.Tracking1 + "</p>"
+        responseHTML += "<p><strong>Pain Points:</strong> " + data.Pain1 + "</p>"
+        responseHTML += "<p><strong>Repetitive Tasks:</strong> " + data.Pain2 + "</p>"
+        responseHTML += "<p><strong>Goals:</strong> " + data.Goals1 + "</p>"
+        
+        // Add suggestions to the response
+        responseHTML += "<h3>Automation Suggestions:</h3><ul>"
+        for _, suggestion := range suggestions {
+            responseHTML += "<li>" + suggestion + "</li>"
+        }
+        responseHTML += "</ul>"
+
+        // Set the content type to HTML
+        w.Header().Set("Content-Type", "text/html")
+        fmt.Fprint(w, responseHTML)
+    } else {
+        http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
     }
+
 }
 
 func getAutomationSuggestions(data FormData) ([]string, error) {
