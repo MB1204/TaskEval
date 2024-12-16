@@ -121,7 +121,7 @@ func submitHandler(w http.ResponseWriter, r *http.Request) {
         // Parse the form data
         err := r.ParseForm()
         if err != nil {
-            http.Error(w, "Failed to parse form", http.StatusBadRequest)
+            http.Error(w, "Failed to parse form: "+err.Error(), http.StatusBadRequest)
             return
         }
 
@@ -138,7 +138,7 @@ func submitHandler(w http.ResponseWriter, r *http.Request) {
         // Send the data to an external API
         suggestions, err := getAutomationSuggestions(data)
         if err != nil {
-            http.Error(w, "Failed to get suggestions", http.StatusInternalServerError)
+            http.Error(w, "Failed to get suggestions: "+err.Error(), http.StatusInternalServerError)
             return
         }
 
@@ -170,7 +170,10 @@ func submitHandler(w http.ResponseWriter, r *http.Request) {
 
 func getAutomationSuggestions(data FormData) ([]string, error) {
     apiUrl := "https://taskeval-production.up.railway.app/Main" // Corrected API endpoint
-    apiToken := os.Getenv("REPLICATE_API_TOKEN") // Use environment variable for API token
+    apiToken := os.Getenv("REPLICATE_API_TOKEN")
+    if apiToken == "" { 
+        return nil, fmt.Errorf("API token is not set in the environment variables")
+    }
 
     query := fmt.Sprintf("Give the best automation suggestions based on the answers: %s, %s, %s, %s, %s, %s, %s",
         data.Task1, data.Task2, data.Tools1, data.Tracking1, data.Pain1, data.Pain2, data.Goals1)
