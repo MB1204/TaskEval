@@ -98,7 +98,7 @@ func formHandler(w http.ResponseWriter, r *http.Request) {
     </div>
 
     <script>
-        const BACKEND_URL = "https://your-backend-url.up.railway.app"; // Replace with your actual backend URL
+        const BACKEND_URL = "https://taskeval-production.up.railway.app/Main"; // Replace with your actual backend URL
     </script>
 </body>
 </html>
