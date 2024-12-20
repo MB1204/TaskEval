@@ -26,9 +26,12 @@ type ApiResponse struct {
 }
 
 func main() {
+    // Test the API endpoint
+    testApiEndpoint()
+
     // Create a new CORS handler
     corsHandler := cors.New(cors.Options{
-        AllowedOrigins:   []string{"https://taskeval-production-1101.up.railway.app/"}, // Replace with your actual frontend URL
+        AllowedOrigins:   []string{"https://your-production-frontend-url.com"}, // Replace with your actual frontend URL
         AllowCredentials: true,
     })
 
@@ -42,6 +45,51 @@ func main() {
     fmt.Printf("Server started at :%s\n", port)
     // Use the CORS handler
     http.ListenAndServe(":8080", corsHandler.Handler(http.DefaultServeMux))
+}
+
+func testApiEndpoint() {
+    apiUrl := "https://taskeval-production.up.railway.app/Main" // Your API endpoint
+    apiToken := os.Getenv("REPLICATE_API_TOKEN")
+    if apiToken == "" {
+        fmt.Println("API token is not set in the environment variables")
+        return
+    }
+
+    requestBody, err := json.Marshal(map[string]string{"query": "Test query"})
+    if err != nil {
+        fmt.Println("Error marshaling request body:", err)
+        return
+    }
+
+    req, err := http.NewRequest(http.MethodPost, apiUrl, bytes.NewBuffer(requestBody))
+    if err != nil {
+        fmt.Println("Error creating request:", err)
+        return
+    }
+
+    req.Header.Set("Content-Type", "application/json")
+    req.Header.Set("Authorization", "Bearer "+apiToken)
+
+    client := &http.Client{}
+    resp, err := client.Do(req)
+    if err != nil {
+        fmt.Println("Error making request:", err)
+        return
+    }
+    defer resp.Body.Close()
+
+    if resp.StatusCode != http.StatusOK {
+        fmt.Printf("API request failed with status: %s\n", resp.Status)
+        return
+    }
+
+    var apiResponse ApiResponse
+    if err := json.NewDecoder(resp.Body).Decode(&apiResponse); err != nil {
+        fmt.Println("Error decoding response:", err)
+        return
+    }
+
+    fmt.Println("API response:", apiResponse)
 }
 
 func formHandler(w http.ResponseWriter, r *http.Request) {
@@ -170,7 +218,6 @@ func submitHandler(w http.ResponseWriter, r *http.Request) {
     } else {
         http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
     }
-
 }
 
 func getAutomationSuggestions(data FormData) ([]string, error) {
@@ -214,3 +261,5 @@ func getAutomationSuggestions(data FormData) ([]string, error) {
 
     return apiResponse.Suggestions, nil
 }
+
+
