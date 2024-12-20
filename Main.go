@@ -28,14 +28,18 @@ type ApiResponse struct {
 func main() {
     // Create a new CORS handler
     corsHandler := cors.New(cors.Options{
-        AllowedOrigins:   []string{"*"}, // Allow all origins or specify your frontend URL
+        AllowedOrigins:   []string{"https://your-production-frontend-url.com"}, // Replace with your actual frontend URL
         AllowCredentials: true,
     })
 
     http.HandleFunc("/", formHandler)
     http.HandleFunc("/submit", submitHandler)
 
-    fmt.Println("Server started at :8080")
+    port := os.Getenv("PORT")
+    if port == "" {
+        port = "8080" // Fallback to 8080 if PORT is not set
+    }
+    fmt.Printf("Server started at :%s\n", port)
     // Use the CORS handler
     http.ListenAndServe(":8080", corsHandler.Handler(http.DefaultServeMux))
 }
