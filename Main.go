@@ -31,7 +31,7 @@ func main() {
 
     // Create a new CORS handler
     corsHandler := cors.New(cors.Options{
-        AllowedOrigins:   []string{"https://your-production-frontend-url.com"}, // Replace with your actual frontend URL
+        AllowedOrigins:   []string{"https://taskeval-production.up.railway.app/"}, // Replace with your actual frontend URL
         AllowCredentials: true,
     })
 
@@ -44,7 +44,7 @@ func main() {
     }
     fmt.Printf("Server started at :%s\n", port)
     // Use the CORS handler
-    http.ListenAndServe(":8080", corsHandler.Handler(http.DefaultServeMux))
+    http.ListenAndServe(":"+port, corsHandler.Handler(http.DefaultServeMux)) // Use the port variable
 }
 
 func testApiEndpoint() {
@@ -52,7 +52,7 @@ func testApiEndpoint() {
     apiToken := os.Getenv("REPLICATE_API_TOKEN")
     if apiToken == "" {
         fmt.Println("API token is not set in the environment variables")
-        return
+        // Removed redundant return statement
     }
 
     requestBody, err := json.Marshal(map[string]string{"query": "Test query"})
