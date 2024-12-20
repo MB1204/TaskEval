@@ -28,7 +28,7 @@ type ApiResponse struct {
 func main() {
     // Create a new CORS handler
     corsHandler := cors.New(cors.Options{
-        AllowedOrigins:   []string{"https://your-production-frontend-url.com"}, // Replace with your actual frontend URL
+        AllowedOrigins:   []string{"https://taskeval-production-1101.up.railway.app/"}, // Replace with your actual frontend URL
         AllowCredentials: true,
     })
 
@@ -125,6 +125,7 @@ func submitHandler(w http.ResponseWriter, r *http.Request) {
         // Parse the form data
         err := r.ParseForm()
         if err != nil {
+            fmt.Println("Error parsing form:", err)
             http.Error(w, "Failed to parse form: "+err.Error(), http.StatusBadRequest)
             return
         }
