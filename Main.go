@@ -1,11 +1,9 @@
 package main
 
 import (
-    "bytes"
     "encoding/json"
     "fmt"
     "html/template"
-    "io/ioutil"
     "net/http"
     "os"
 
@@ -110,7 +108,7 @@ func formHandler(w http.ResponseWriter, r *http.Request) {
         }
         err = t.Execute(w, nil)
         if err != nil {
- http.Error(w, "Failed to execute template", http.StatusInternalServerError)
+            http.Error(w, "Failed to execute template", http.StatusInternalServerError)
             return
         }
     }
